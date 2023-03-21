@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.zxc.mybatis.binding.MapperProxyFactory;
 import com.zxc.mybatis.binding.MapperRegistry;
 import com.zxc.mybatis.builder.xml.XMLConfigBuilder;
+import com.zxc.mybatis.datasource.pooled.PooledDataSource;
 import com.zxc.mybatis.io.Resources;
 import com.zxc.mybatis.session.Configuration;
 import com.zxc.mybatis.session.SqlSession;
@@ -19,6 +20,8 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.Reader;
 import java.lang.reflect.Method;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -82,6 +85,17 @@ public class ApiTest {
 
     @Test
     public void test_SqlSessionFactory() throws IOException {
+//        // 1. 从SqlSessionFactory中获取SqlSession
+//        SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(Resources.getResourceAsReader("mybatis-config-datasource.xml"));
+//        SqlSession sqlSession = sqlSessionFactory.openSession();
+//
+//        // 2. 获取映射器对象
+//        IUserDao userDao = sqlSession.getMapper(IUserDao.class);
+//
+//        // 3. 测试验证
+//        User user = userDao.queryUserInfoById(1L);
+//        logger.info("测试结果：{}", JSON.toJSONString(user));
+
         // 1. 从SqlSessionFactory中获取SqlSession
         SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(Resources.getResourceAsReader("mybatis-config-datasource.xml"));
         SqlSession sqlSession = sqlSessionFactory.openSession();
@@ -90,23 +104,41 @@ public class ApiTest {
         IUserDao userDao = sqlSession.getMapper(IUserDao.class);
 
         // 3. 测试验证
-        User user = userDao.queryUserInfoById(1L);
-        logger.info("测试结果：{}", JSON.toJSONString(user));
+        for (int i = 0; i < 50; i++) {
+            User user = userDao.queryUserInfoById(1L);
+            logger.info("测试结果：{}", JSON.toJSONString(user));
+        }
     }
 
+//    @Test
+//    public void test_selectOne() throws IOException {
+//        // 解析 XML
+//        Reader reader = Resources.getResourceAsReader("mybatis-config-datasource.xml");
+//        XMLConfigBuilder xmlConfigBuilder = new XMLConfigBuilder(reader);
+//        Configuration configuration = xmlConfigBuilder.parse();
+//
+//        // 获取 DefaultSqlSession
+//        SqlSession sqlSession = new DefaultSqlSession(configuration);
+//
+//        // 执行查询：默认是一个集合参数
+//        Object[] req = {1L};
+//        Object res = sqlSession.selectOne("com.zxc.mybatis.test.dao.IUserDao.queryUserInfoById", req);
+//        logger.info("测试结果：{}", JSON.toJSONString(res));
+//    }
+
     @Test
-    public void test_selectOne() throws IOException {
-        // 解析 XML
-        Reader reader = Resources.getResourceAsReader("mybatis-config-datasource.xml");
-        XMLConfigBuilder xmlConfigBuilder = new XMLConfigBuilder(reader);
-        Configuration configuration = xmlConfigBuilder.parse();
-
-        // 获取 DefaultSqlSession
-        SqlSession sqlSession = new DefaultSqlSession(configuration);
-
-        // 执行查询：默认是一个集合参数
-        Object[] req = {1L};
-        Object res = sqlSession.selectOne("com.zxc.mybatis.test.dao.IUserDao.queryUserInfoById", req);
-        logger.info("测试结果：{}", JSON.toJSONString(res));
+    public void test_pooled() throws SQLException, InterruptedException {
+        PooledDataSource pooledDataSource = new PooledDataSource();
+        pooledDataSource.setDriver("com.mysql.jdbc.Driver");
+        pooledDataSource.setUrl("jdbc:mysql://192.168.50.132:3306/mybatis?useUnicode=true");
+        pooledDataSource.setUsername("root");
+        pooledDataSource.setPassword("root");
+        // 持续获得链接
+        while (true){
+            Connection connection = pooledDataSource.getConnection();
+            System.out.println(connection);
+            Thread.sleep(1000);
+            connection.close();
+        }
     }
 }
