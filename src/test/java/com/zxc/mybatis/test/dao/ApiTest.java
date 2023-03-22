@@ -105,6 +105,7 @@ public class ApiTest {
 
         // 3. 测试验证
         User user = userDao.queryUserInfoById(1L);
+        logger.info("测试结果：{}", JSON.toJSONString(user));
     }
 
 //    @Test

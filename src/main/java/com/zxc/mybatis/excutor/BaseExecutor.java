@@ -15,14 +15,12 @@ public abstract class BaseExecutor implements Executor {
     private org.slf4j.Logger logger = LoggerFactory.getLogger(BaseExecutor.class);
 
     protected Configuration configuration;
-
     protected Transaction transaction;
-
     protected Executor wrapper;
 
     private boolean closed;
 
-    public BaseExecutor(Configuration configuration, Transaction transaction) {
+    protected BaseExecutor(Configuration configuration, Transaction transaction) {
         this.configuration = configuration;
         this.transaction = transaction;
         this.wrapper = this;
@@ -30,7 +28,7 @@ public abstract class BaseExecutor implements Executor {
 
     @Override
     public <E> List<E> query(MappedStatement ms, Object parameter, ResultHandler resultHandler, BoundSql boundSql) {
-        if(closed) {
+        if (closed) {
             throw new RuntimeException("Executor was closed.");
         }
         return doQuery(ms, parameter, resultHandler, boundSql);
@@ -40,7 +38,7 @@ public abstract class BaseExecutor implements Executor {
 
     @Override
     public Transaction getTransaction() {
-        if(closed) {
+        if (closed) {
             throw new RuntimeException("Executor was closed.");
         }
         return transaction;
@@ -48,18 +46,18 @@ public abstract class BaseExecutor implements Executor {
 
     @Override
     public void commit(boolean required) throws SQLException {
-        if(closed) {
+        if (closed) {
             throw new RuntimeException("Cannot commit, transaction is already closed");
         }
-        if(required) {
+        if (required) {
             transaction.commit();
         }
     }
 
     @Override
     public void rollback(boolean required) throws SQLException {
-        if(!closed) {
-            if(required) {
+        if (!closed) {
+            if (required) {
                 transaction.rollback();
             }
         }
@@ -74,7 +72,7 @@ public abstract class BaseExecutor implements Executor {
                 transaction.close();
             }
         } catch (SQLException e) {
-            logger.warn("Unexpected exception on closing transaction. Cause：" + e);
+            logger.warn("Unexpected exception on closing transaction.  Cause: " + e);
         } finally {
             transaction = null;
             closed = true;

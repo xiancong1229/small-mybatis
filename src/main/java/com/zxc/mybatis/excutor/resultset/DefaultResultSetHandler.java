@@ -7,6 +7,7 @@ import com.zxc.mybatis.mapping.MappedStatement;
 import java.lang.reflect.Method;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class DefaultResultSetHandler implements ResultSetHandler {
@@ -18,7 +19,7 @@ public class DefaultResultSetHandler implements ResultSetHandler {
     }
 
     @Override
-    public <E> List<E> handleResultSet(Statement statement) throws SQLException {
+    public <E> List<E> handleResultSets(Statement statement) throws SQLException {
         ResultSet resultSet = statement.getResultSet();
         try {
             return resultSet2Obj(resultSet, Class.forName(boundSql.getResultType()));

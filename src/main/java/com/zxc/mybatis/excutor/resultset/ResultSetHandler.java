@@ -6,5 +6,5 @@ import java.util.List;
 
 public interface ResultSetHandler {
 
-    <E> List<E> handleResultSet(Statement statement) throws SQLException;
+    <E> List<E> handleResultSets(Statement statement) throws SQLException;
 }
